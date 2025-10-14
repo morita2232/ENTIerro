@@ -37,5 +37,11 @@
     <Image Include="wall.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="cross.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="player.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

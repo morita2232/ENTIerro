@@ -5,6 +5,7 @@
 #include <array>
 #include "raylib.h"
 
+
 using namespace std;
 
 float currVers = 0.5;
@@ -38,9 +39,8 @@ string textName;
 
 float cubeSize = 1.0f;
 
+Vector3 playerPosition = { 0.0f, 1.0f, 0.0f };
 
-
-//CREAR char** para cada mapa
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -93,7 +93,14 @@ int entierro(void)
         model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
         models.insert({ it->first, model });
     }
+	float playerSize = 0.375f;
 
+    Mesh playerMesh = GenMeshSphere(playerSize, 16, 16);
+	Model playerModel = LoadModelFromMesh(playerMesh);
+
+    Texture2D playerTexture = LoadTexture("player.png");
+
+    playerModel.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = playerTexture;
 
     SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
     //--------------------------------------------------------------------------------------
@@ -119,31 +126,7 @@ int entierro(void)
         for (int h = 0; h < fileHeight; h++) {
 
             for (int w = 0; w < fileWidth; w++) {
-               /*
-                if (lista[h][w] == '1') {
 
-               // Vector3 cubePosition = { -3.5f + w, 0.5f, -3.5f + h};
-
-                DrawCube(cubePosition, cubeSize, cubeSize, cubeSize, DARKPURPLE);
-                DrawCubeWires(cubePosition, cubeSize, cubeSize, cubeSize, ORANGE);
-                }
-
-                if (lista[h][w] == '2') {
-
-                    //Vector3 cubePosition = { -3.5f + w, 0.5f, -3.5f + h };
-
-                    DrawCube(cubePosition, cubeSize, cubeSize, cubeSize, WHITE);
-                    DrawCubeWires(cubePosition, cubeSize, cubeSize, cubeSize, ORANGE);
-                }
-
-                if (lista[h][w] == 'F') {
-
-                    //Vector3 cubePosition = { -3.5f + w, 0.5f, -3.5f + h };
-
-                    DrawCube(cubePosition, cubeSize, cubeSize, cubeSize, ORANGE);
-                    DrawCubeWires(cubePosition, cubeSize, cubeSize, cubeSize, ORANGE);
-                }
-               */
                 if (lista[h][w] != '0') {
                     DrawModel(models[lista[h][w]], cubePosition, cubeSize, WHITE);
                 }
@@ -151,6 +134,66 @@ int entierro(void)
             }
             cubePosition.x = cubeInX;
             cubePosition.z += cubeSize;
+        }
+
+        cubePosition = { cubeInX, 0.0f, cubeInZ };
+
+        for (int h = 0; h < fileHeight; h++) {
+
+            for (int w = 0; w < fileWidth; w++) {
+
+                if (level_s[h][w] != '0') {
+                    DrawModel(models[level_s[h][w]], cubePosition = { cubePosition.x, 1.0f , cubePosition.z }, cubeSize, WHITE);
+                }
+                cubePosition.x += cubeSize;
+            }
+            cubePosition.x = cubeInX;
+            cubePosition.z += cubeSize;
+        }
+
+        cubePosition = { cubeInX, 0.0f, cubeInZ };
+
+        for (int h = 0; h < fileHeight; h++) {
+
+            for (int w = 0; w < fileWidth; w++) {
+
+                if (objects[h][w] == '@') {
+                    DrawModel(playerModel, playerPosition, cubeSize, WHITE);
+
+                }
+
+                if (objects[h][w] != '0') {
+                    DrawModel(models[objects[h][w]], cubePosition = { cubePosition.x, 1.0f , cubePosition.z }, cubeSize, WHITE);
+                }
+                cubePosition.x += cubeSize;
+            }
+            cubePosition.x = cubeInX;
+            cubePosition.z += cubeSize;
+        }
+
+        switch (GetKeyPressed())
+        {
+        case KEY_W:
+            
+            DrawModel(playerModel, playerPosition = {playerPosition.x, 1.0f, playerPosition.z - 1.0f}, cubeSize, WHITE);
+            playerPosition = playerPosition;
+			break;
+
+        case KEY_A:
+			DrawModel(playerModel, playerPosition = { playerPosition.x - 1.0f, 1.0f, playerPosition.z }, cubeSize, WHITE);
+
+			playerPosition = playerPosition;
+			break;
+
+		case KEY_S:
+			DrawModel(playerModel, playerPosition = { playerPosition.x, 1.0f, playerPosition.z + 1.0f }, cubeSize, WHITE);
+			playerPosition = playerPosition;
+			break;
+
+		case KEY_D:
+			DrawModel(playerModel, playerPosition = { playerPosition.x + 1.0f, 1.0f, playerPosition.z }, cubeSize, WHITE);
+			playerPosition = playerPosition;
+			break;
         }
 
 
@@ -482,6 +525,25 @@ int main()
             }
             //cout << endl;
             getline(levelFile, tmp, '\n');
+        }
+
+        float cubeOffsetX = (fileWidth % 2 == 0) ? 0.5f : 0.0f;
+        float cubeOffsetZ = (fileHeight % 2 == 0) ? 0.5f : 0.0f;
+
+        float cubeInX = -(fileWidth / 2.0f) + cubeOffsetX;
+        float cubeInZ = -(fileHeight / 2.0f) + cubeOffsetZ;
+
+        for (int h = 0; h < fileHeight; h++) {
+            for (int w = 0; w < fileWidth; w++) {
+                if (objects[h][w] == '@') {
+                    // Calculate world coordinates based on grid position
+                    float playerX = cubeInX + w * cubeSize;
+                    float playerZ = cubeInZ + h * cubeSize;
+
+
+                    playerPosition = { playerX, 1.0f, playerZ };
+                }
+            }
         }
 
         levelFile.close();
