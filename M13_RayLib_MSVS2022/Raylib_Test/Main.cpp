@@ -536,7 +536,7 @@ int main()
         for (int h = 0; h < fileHeight; h++) {
             for (int w = 0; w < fileWidth; w++) {
                 if (objects[h][w] == '@') {
-                    // Calculate world coordinates based on grid position
+
                     float playerX = cubeInX + w * cubeSize;
                     float playerZ = cubeInZ + h * cubeSize;
 
