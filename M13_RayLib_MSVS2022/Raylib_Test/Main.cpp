@@ -19,9 +19,10 @@ using namespace std;
 
 string tmp;
 string title;
+string musicfile;
 
-float version_cur = 0.5;
-float version_min = 0.3;
+float version_cur = 0.6;
+float version_min = 0.5;
 float version_file = -1.0;
 
 int level_w_min = 2;
@@ -50,6 +51,8 @@ bool useTexturedPlayer = false;
 Model playerModel;
 
 int coffinCounter;
+
+float cameraHeight = 10.0f;
 
 
 
@@ -101,11 +104,11 @@ int entierro(void)
     const int screenHeight = 450;
 
     InitWindow(screenWidth, screenHeight, "raylib [core] example - 3d camera mode");
- 
+	InitAudioDevice();
 
     // Camara 3D
     Camera3D camera = { 0 };
-    camera.position = Vector3{ 0.0f, 10.0f, 10.0f };
+    camera.position = Vector3{ 0.0f, cameraHeight, 10.0f };
     camera.target = Vector3{ 0.0f, 0.0f, 0.0f };
     camera.up = Vector3{ 0.0f, 1.0f, 0.0f };
     camera.fovy = 45.0f;
@@ -141,12 +144,16 @@ int entierro(void)
         useTexturedPlayer = true;
     }
 
+   Music backgroundMusic = LoadMusicStream(musicfile.c_str());
+   PlayMusicStream(backgroundMusic);
+
     SetTargetFPS(60);
-    float timer;
+    float timer = 0.f;
     //--------------------------------------------------------------------------------------
     // Main game loop
     while (!WindowShouldClose())
     {
+		UpdateMusicStream(backgroundMusic);
         if (coffinCounter != 0) {
         timer = GetTime();
 
@@ -182,72 +189,92 @@ int entierro(void)
 
         }
 
+     
         if (!check_collision(temp_x, temp_z, true)) {
-            if (check_coffin(temp_x, temp_z)) {
-                float coffin_in_x = temp_x;
-                float coffin_in_z = temp_z;
+            // índices de la casilla a la que se quiere mover el jugador
+            int t_px = (int)(temp_x - cubeIniX);
+            int t_pz = (int)(temp_z - cubeIniZ);
 
-                switch (player_direction) {
-
-                case 'U':
-                    coffin_in_z = temp_z - 1.0;
-                    break;
-
-                case 'D':
-                    coffin_in_z = temp_z + 1.0;
-                    break;
-
-                case 'L':
-                    coffin_in_x = temp_x - 1.0;
-                    break;
-
-                case 'R':
-                    coffin_in_x = temp_x + 1.0;
-                    break;
-                }
-
-                if (!check_collision(coffin_in_x, coffin_in_z, false)) {
-                    
-                    int pos_x = temp_x - cubeIniX;
-                    int pos_z = temp_z - cubeIniZ;
-                    
-                    level_objects[pos_z][pos_x] = '0';
-
-                    pos_x = coffin_in_x - cubeIniX;
-                    pos_z = coffin_in_z - cubeIniZ;
-                    
-                    level_objects[pos_z][pos_x] = 'C';
-
-                    playerPosition.x = temp_x;
-                    playerPosition.z = temp_z;
-                }
-                else {
-                    int pos_x = temp_x - cubeIniX;
-                    int pos_z = temp_z - cubeIniZ;
-
-                    level_objects[pos_z][pos_x] = '0';
-
-                    pos_x = coffin_in_x - cubeIniX;
-                    pos_z = coffin_in_z - cubeIniZ;
-
-                    level_floor[pos_z][pos_x] = 'C';
-                    level_collisions[pos_z][pos_x] = '0';
-                    playerPosition.x = temp_x;
-                    playerPosition.z = temp_z;
-
-                    coffinCounter -= 1;
-
-                }
-
-            
+            // seguridad: fuera de mapa -> no mover
+            if (t_px < 0 || t_px >= level_w || t_pz < 0 || t_pz >= level_h) {
+                // bloqueado por fuera del mapa
             }
             else {
-            playerPosition.x = temp_x;
-            playerPosition.z = temp_z;
+                char coll_at_target = level_collisions[t_pz][t_px];
+                char obj_at_target = level_objects[t_pz][t_px];
 
+                // Si la casilla destino es una tumba ('S'), EL JUGADOR NO PUEDE PISARLA
+                if (coll_at_target == 'S') {
+                    // bloqueado, no mover el jugador
+                }
+                else if (obj_at_target == 'C') {
+                    // hay un ataúd: intentamos empujarlo
+                    float coffin_in_x = temp_x;
+                    float coffin_in_z = temp_z;
+
+                    switch (player_direction) {
+                    case 'U': coffin_in_z = temp_z - 1.0f; break;
+                    case 'D': coffin_in_z = temp_z + 1.0f; break;
+                    case 'L': coffin_in_x = temp_x - 1.0f; break;
+                    case 'R': coffin_in_x = temp_x + 1.0f; break;
+                    }
+
+                    int target_x = (int)(coffin_in_x - cubeIniX);
+                    int target_z = (int)(coffin_in_z - cubeIniZ);
+
+                    // Si destino del ataúd fuera de mapa -> bloqueado (no mover)
+                    if (target_x < 0 || target_x >= level_w || target_z < 0 || target_z >= level_h) {
+                        // no hacer nada
+                    }
+                    else {
+                        char coll_at_coffin_dest = level_collisions[target_z][target_x];
+                        char obj_at_coffin_dest = level_objects[target_z][target_x];
+
+                        // Si destino es tumba -> ENTERRAR (tu lógica original espera "colisión" para enterrar)
+                        if (coll_at_coffin_dest == 'S') {
+                            // eliminar caja de su origen
+                            int src_x = (int)(temp_x - cubeIniX);
+                            int src_z = (int)(temp_z - cubeIniZ);
+                            level_objects[src_z][src_x] = '0';
+
+                            // marcar en floor y actualizar colisiones correctamente en la celda de la tumba
+                            level_floor[target_z][target_x] = 'C';
+                            level_collisions[target_z][target_x] = '0';
+
+                            // mover jugador a la casilla (donde estaba el ataúd)
+                            playerPosition.x = temp_x;
+                            playerPosition.z = temp_z;
+
+                            coffinCounter -= 1;
+                        }
+                        else {
+                            // Si destino es pared o otro ataúd -> bloqueado
+                            if (coll_at_coffin_dest == 'X' || obj_at_coffin_dest == 'C') {
+                                // no hacer nada
+                            }
+                            else {
+                                // destino libre -> mover ataúd
+                                int src_x = (int)(temp_x - cubeIniX);
+                                int src_z = (int)(temp_z - cubeIniZ);
+
+                                level_objects[src_z][src_x] = '0';
+                                level_objects[target_z][target_x] = 'C';
+
+                                // mover jugador a la casilla del ataúd
+                                playerPosition.x = temp_x;
+                                playerPosition.z = temp_z;
+                            }
+                        }
+                    }
+                }
+                else {
+                    // no hay ataúd: mover jugador normalmente
+                    playerPosition.x = temp_x;
+                    playerPosition.z = temp_z;
+                }
             }
-
         }
+
 
         //----------------------------------------------------------------------------------
 
@@ -349,7 +376,8 @@ int entierro(void)
     // Unload de modelos cargados
     for (auto& kv : models) UnloadModel(kv.second);
     if (useTexturedPlayer) UnloadModel(playerModel);
-
+	UnloadMusicStream(backgroundMusic);
+	CloseAudioDevice();
     CloseWindow();
     //--------------------------------------------------------------------------------------
 
@@ -409,6 +437,33 @@ int main()
     //------2.2. READ TILL "ENDL"------
     getline(level_file, tmp, '\n');
 
+    if (version_file >= version_cur) {
+
+
+        //------NEW MUSIC------
+        getline(level_file, tmp, ';');
+
+        if (tmp != "MUSIC") {
+            cout << "ERROR 14: FILE DOES NOT MATCH THE NAME" << endl;
+            return 14;
+        }
+
+        getline(level_file, tmp, ';');
+
+        if (tmp == "") {
+            cout << "ERROR 15: FILE DOES NOT HAVE A NAME." << endl;
+            return 15;
+        }
+        else {
+            musicfile = tmp;
+        }
+
+        getline(level_file, tmp, '\n');
+    }
+    else {
+        musicfile = "";
+    }
+
     //------3. SIZE------
     getline(level_file, tmp, ';');
 
@@ -425,6 +480,10 @@ int main()
     if (level_w < level_w_min) {
         cout << "ERROR 7.1: FILE DOES NOT HAVE MIN. SIZE." << endl;
         return 7;
+    }
+
+    if (level_w > 8) {
+		cameraHeight = 20.0f;
     }
 
     //------3. HEIGTH------

@@ -23,6 +23,12 @@
     <None Include="first_level.erro">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="second_level.erro">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="backgroundmusic.ogg">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\texturas\dirt.png">
