@@ -54,6 +54,8 @@ int coffinCounter;
 
 float cameraHeight = 10.0f;
 
+Music backgroundMusic;
+
 
 
 bool check_collision(float x, float z, bool isPlayer) {
@@ -144,8 +146,10 @@ int entierro(void)
         useTexturedPlayer = true;
     }
 
-   Music backgroundMusic = LoadMusicStream(musicfile.c_str());
-   PlayMusicStream(backgroundMusic);
+    if (version_file >= version_cur) {
+        backgroundMusic = LoadMusicStream(musicfile.c_str());
+        PlayMusicStream(backgroundMusic);
+    }
 
     SetTargetFPS(60);
     float timer = 0.f;
@@ -153,7 +157,10 @@ int entierro(void)
     // Main game loop
     while (!WindowShouldClose())
     {
-		UpdateMusicStream(backgroundMusic);
+        if (version_file >= version_cur) {
+            UpdateMusicStream(backgroundMusic);
+        }
+
         if (coffinCounter != 0) {
         timer = GetTime();
 
@@ -376,7 +383,8 @@ int entierro(void)
     // Unload de modelos cargados
     for (auto& kv : models) UnloadModel(kv.second);
     if (useTexturedPlayer) UnloadModel(playerModel);
-	UnloadMusicStream(backgroundMusic);
+	
+    if (version_file >= version_cur) UnloadMusicStream(backgroundMusic);
 	CloseAudioDevice();
     CloseWindow();
     //--------------------------------------------------------------------------------------
@@ -387,7 +395,7 @@ int entierro(void)
 int main()
 {
     //------0. FILE------
-    ifstream level_file("first_level.erro");
+    ifstream level_file("third_level.erro");
 
     if (!level_file.is_open()) {
         cout << "ERROR 1: FILE DOES NOT EXIST." << endl;

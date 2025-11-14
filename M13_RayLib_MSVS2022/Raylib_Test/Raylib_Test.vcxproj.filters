@@ -29,6 +29,9 @@
     <None Include="backgroundmusic.ogg">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="third_level.erro">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\texturas\dirt.png">

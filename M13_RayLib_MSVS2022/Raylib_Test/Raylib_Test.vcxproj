@@ -139,6 +139,7 @@
     <None Include="backgroundmusic.ogg" />
     <None Include="first_level.erro" />
     <None Include="second_level.erro" />
+    <None Include="third_level.erro" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\..\Downloads\texturas\dirt.png" />
