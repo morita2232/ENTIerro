@@ -105,7 +105,7 @@ int entierro(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - 3d camera mode");
+    InitWindow(screenWidth, screenHeight, title.c_str());
 	InitAudioDevice();
 
     // Camara 3D
@@ -237,7 +237,7 @@ int entierro(void)
                         char coll_at_coffin_dest = level_collisions[target_z][target_x];
                         char obj_at_coffin_dest = level_objects[target_z][target_x];
 
-                        // Si destino es tumba -> ENTERRAR (tu lógica original espera "colisión" para enterrar)
+                        // Si destino es tumba -> ENTERRAR
                         if (coll_at_coffin_dest == 'S') {
                             // eliminar caja de su origen
                             int src_x = (int)(temp_x - cubeIniX);
